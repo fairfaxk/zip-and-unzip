@@ -33,7 +33,7 @@ int main(int argc, char** argv){
 		printf("File could not be opened\n");
 		return -1;
 	}
-	if((outfile=fopen(out.c_str(), "a"))==NULL){
+	if((outfile=fopen(out.c_str(), "w"))==NULL){
 		printf("Could not open zip file\n");
 		return -1;
 	}
@@ -45,7 +45,7 @@ int main(int argc, char** argv){
 	for(unsigned int i = 0; i<256; i++){
 		dictionary[string(1,(unsigned char) i)] = i;
 	}
-	dictionary[""] = 4095;
+	//dictionary[""] = 4095;
 	
 	string currentString = string(1,fgetc(file));
 	unsigned int previousCodeword;
@@ -72,15 +72,15 @@ int main(int argc, char** argv){
 				previousCodeword = codeword;
 				isSecondIter=1;
 			}
-			if(dictionary.size()<MAX_SIZE-1){
-				dictionary[s] = dictionary.size();
+			if(dictionary.size()<MAX_SIZE-2){
+				dictionary[s] = dictionary.size()+1;
 			}
 			currentString = string(1,currentChar);
 		}
 	}	
 	unsigned int codeword = dictionary[currentString];
 	if(isSecondIter==0){
-		unsigned char* outs = convertCodeWord(codeword, dictionary[""]);
+		unsigned char* outs = convertCodeWord(codeword, 4095);
 		fwrite(outs,sizeof(unsigned char), 3, outfile);
         }
 	else{
