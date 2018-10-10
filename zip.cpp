@@ -72,8 +72,8 @@ int main(int argc, char** argv){
 				previousCodeword = codeword;
 				isSecondIter=1;
 			}
-			if(dictionary.size()<MAX_SIZE-2){
-				dictionary[s] = dictionary.size()+1;
+			if(dictionary.size()<MAX_SIZE-1){
+				dictionary[s] = dictionary.size()-1;
 			}
 			currentString = string(1,currentChar);
 		}
