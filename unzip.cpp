@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <map>
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -30,11 +31,12 @@ void uncompress(){
         else{
                 currentString = dictionary[nextCode];
         }
-
-        fwrite(&currentString, sizeof(unsigned char), currentString.size(), outfile);
+	
+	//cout << currentString << "\n";
+        fwrite(currentString.c_str(), sizeof(unsigned char), currentString.size(), outfile);
         currentChar = currentString[0];
         oldString = dictionary[currentCode];
-	if(dictionary.size()<MAX_SIZE){
+	if(dictionary.size()<MAX_SIZE-1){
         	int size = dictionary.size();
 		dictionary[size] = oldString + currentChar;
 	}
