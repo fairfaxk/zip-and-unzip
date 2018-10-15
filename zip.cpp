@@ -12,8 +12,6 @@ unsigned char* convertCodeWord(unsigned int code1, unsigned int code2){
 	out[1] = ((code1 & 0xf) << 4) | (code2 >> 8);
 	out[2] = code2 & 0xff;
 
-	//printf("%c, %c, %c \n", out[0], out[1], out[2]);	
-
 	return out;
 }
 
@@ -45,7 +43,6 @@ int main(int argc, char** argv){
 	for(unsigned int i = 0; i<256; i++){
 		dictionary[string(1,(unsigned char) i)] = i;
 	}
-	//dictionary[""] = 4095;
 	
 	string currentString = string(1,fgetc(file));
 	unsigned int previousCodeword;
@@ -53,18 +50,23 @@ int main(int argc, char** argv){
 	int isSecondIter = 0;
 
 	while((currentChar = fgetc(file))!=EOF){
+		if(ferror(file)){
+			printf("Error reading file\n");
+			return -2;
+		}
 		string s = currentString+currentChar;
 		if(dictionary.find(s)!=dictionary.end()){
 			currentString = s;
-			//printf("%s", currentString.c_str());
 		}
 		else{
-			//printf("%s, %d\n",currentString.c_str(), isSecondIter);
 			unsigned int codeword = dictionary[currentString];
 			//If we have a codeword to combine with, do that
 			if(isSecondIter==1){
 				unsigned char* outs = convertCodeWord(previousCodeword, codeword);
-				fwrite(outs,sizeof(unsigned char), 3, outfile);
+				if(fwrite(outs,sizeof(unsigned char), 3, outfile)!=3){
+					printf("Error writing to file\n");
+					return -3;
+				}
 				isSecondIter=0;
 			}
 			//elsewise save the current codeword to combine with the next
@@ -81,12 +83,21 @@ int main(int argc, char** argv){
 	unsigned int codeword = dictionary[currentString];
 	if(isSecondIter==0){
 		unsigned char* outs = convertCodeWord(codeword, 4095);
-		fwrite(outs,sizeof(unsigned char), 3, outfile);
+		if(fwrite(outs,sizeof(unsigned char), 3, outfile)!=3){
+			printf("Error writing to file\n");
+			return -3;
+		}
         }
 	else{
 		unsigned char* outs = convertCodeWord(previousCodeword, codeword);
-		fwrite(outs,sizeof(unsigned char), 3, outfile);
+		if((fwrite(outs,sizeof(unsigned char), 3, outfile))!=3){
+			printf("Error writiing to file\n");
+			return -3;
+		}
 	}
+	
+	fclose(file);
+	fclose(outfile);
 	
 	return 1;
 }

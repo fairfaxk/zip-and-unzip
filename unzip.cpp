@@ -23,7 +23,7 @@ void getCodes(unsigned char a, unsigned char b, unsigned char c){
 	code2 = ((b&0xf)<<8) | (c);
 }
 
-void uncompress(){
+int uncompress(){
 	if(nextCode<4095){
 	if(dictionary.find(nextCode)==dictionary.end()){
                 currentString = dictionary[currentCode];
@@ -34,7 +34,10 @@ void uncompress(){
         }
 	
 	//cout << currentString << "\n";
-        fwrite(currentString.c_str(), sizeof(unsigned char), currentString.size(), outfile);
+        if(fwrite(currentString.c_str(), sizeof(unsigned char), currentString.size(), outfile)!=currentString.size()){
+		printf("Error writing to file\n");
+		return -3;
+	}
         currentChar = currentString[0];
         oldString = dictionary[currentCode];
 	if(dictionary.size()<MAX_SIZE-1){
@@ -43,6 +46,7 @@ void uncompress(){
 	}
         currentCode = nextCode;
 	}
+	return 1;
 }
 
 int main(int argc, char** argv){
@@ -81,8 +85,22 @@ int main(int argc, char** argv){
 	int numRead = 0;
 
 	a = fgetc(file);
+        if(ferror(file)){
+                printf("Error reading from file\n");
+                exit(-2);
+        }
+
 	b = fgetc(file);
+        if(ferror(file)){
+                printf("Error reading from file\n");
+                exit(-2);
+        }
+
 	c = fgetc(file);
+        if(ferror(file)){
+        	printf("Error reading from file\n");
+                exit(-2);
+        }
 	
 	getCodes(a,b,c);
 	
@@ -92,11 +110,19 @@ int main(int argc, char** argv){
 	string s = dictionary[currentCode];
 	currentChar = s[0];
 	fputc(currentChar, outfile);
-
-	uncompress();
+	if(ferror(outfile)){
+		printf("Error writing to file\n");
+		return -3;
+	}
+	if(uncompress()<0) {return -3;}
 
 	int read;
 	while((read = fgetc(file))!=EOF){
+		if(ferror(file)){
+			printf("Error reading from file\n");
+			exit(-2);
+		}
+		
 		if(numRead == 0){
 			numRead++;
 			a = read;
@@ -111,11 +137,14 @@ int main(int argc, char** argv){
 			getCodes(a,b,c);
 			
 			nextCode = code1;
-			uncompress();
+			if(uncompress()<0){return -3;}
 			nextCode = code2;
-			uncompress();
+			if(uncompress()<0){return -3;}
 		}
 	}
+
+	fclose(file);
+	fclose(outfile);
 	
 	return 1;
 }
