@@ -24,6 +24,7 @@ void getCodes(unsigned char a, unsigned char b, unsigned char c){
 }
 
 void uncompress(){
+	if(nextCode<4095){
 	if(dictionary.find(nextCode)==dictionary.end()){
                 currentString = dictionary[currentCode];
                 currentString = currentString + currentChar;
@@ -41,6 +42,7 @@ void uncompress(){
 		dictionary[size] = oldString + currentChar;
 	}
         currentCode = nextCode;
+	}
 }
 
 int main(int argc, char** argv){
